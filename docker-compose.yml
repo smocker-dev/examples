@@ -1,0 +1,15 @@
+version: "3"
+services:
+  smocker:
+    image: thiht/smocker
+    ports:
+      - ${MOCK_SERVER_PORT}:8080
+      - ${MOCK_SERVER_ADMIN_PORT}:8081
+  postgres:
+    image: postgres
+    ports:
+      - ${POSTGRES_PORT}:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}

@@ -1,0 +1,12 @@
+- id: 1
+  user_id: 2
+  hotel_id: 2
+  room_number: 3
+- id: 2
+  user_id: 3
+  hotel_id: 2
+  room_number: 1
+- id: 3
+  user_id: 1
+  hotel_id: 3
+  room_number: 2

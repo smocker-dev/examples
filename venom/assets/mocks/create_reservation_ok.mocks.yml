@@ -1,0 +1,23 @@
+- request:
+    path: /users/user1
+    method: GET
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {
+        "id": 1,
+        "name": "user1"
+      }
+- request:
+    path: /hotels/hotel1
+    method: GET
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {
+        "id": 1,
+        "name": "hotel1",
+        "rooms": 10
+      }

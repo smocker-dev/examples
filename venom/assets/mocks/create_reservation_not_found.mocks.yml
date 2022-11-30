@@ -1,0 +1,36 @@
+# UC 1
+- request:
+    path: /users/user1
+    method: GET
+  response:
+    status: 404
+    headers:
+      Content-Type: application/json
+    body: >
+      {
+        "message": "not found"
+      }
+
+# UC 2
+- request:
+    path: /users/user2
+    method: GET
+  response:
+    headers:
+      Content-Type: application/json
+    body: >
+      {
+        "id": 2,
+        "name": "user2"
+      }
+- request:
+    path: /hotels/hotel2
+    method: GET
+  response:
+    status: 404
+    headers:
+      Content-Type: application/json
+    body: >
+      {
+        "message": "not found"
+      }

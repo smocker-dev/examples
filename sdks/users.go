@@ -32,6 +32,9 @@ func (c *usersClient) GetUsers(ctx context.Context) ([]types.User, error) {
 		return users, err
 	}
 	defer resp.Body.Close()
+	if err = errorHook(resp); err != nil {
+		return users, err
+	}
 	err = json.NewDecoder(resp.Body).Decode(&users)
 	return users, err
 }
@@ -47,6 +50,9 @@ func (c *usersClient) GetUserByName(ctx context.Context, name string) (types.Use
 		return user, err
 	}
 	defer resp.Body.Close()
+	if err = errorHook(resp); err != nil {
+		return user, err
+	}
 	err = json.NewDecoder(resp.Body).Decode(&user)
 	return user, err
 }

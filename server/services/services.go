@@ -61,15 +61,15 @@ func (s *reservations) CreateReservation(ctx context.Context, reservation types.
 	var res types.Reservation
 	user, err := s.users.GetUserByName(ctx, reservation.User)
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("unable to retrieve user %q: %w", reservation.User, err)
 	}
 	hotel, err := s.hotels.GetHotelByName(ctx, reservation.Hotel)
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("unable to retrieve hotel %q: %w", reservation.Hotel, err)
 	}
 	reservations, err := s.db.SelectReservationsByHotel(ctx, hotel.ID)
 	if err != nil {
-		return res, err
+		return res, fmt.Errorf("unable to retrieve reservations from database: %w", err)
 	}
 
 	reservedRooms := int64(0)
@@ -81,9 +81,13 @@ func (s *reservations) CreateReservation(ctx context.Context, reservation types.
 		return res, fmt.Errorf("can't create reservation: %w", ErrInsufficientCapacity)
 	}
 
-	return s.db.InsertReservation(ctx, types.Reservation{
+	result, err := s.db.InsertReservation(ctx, types.Reservation{
 		UserID:     user.ID,
 		HotelID:    hotel.ID,
 		RoomNumber: reservation.Rooms,
 	})
+	if err != nil {
+		return res, fmt.Errorf("unable to create reservation on database: %w", err)
+	}
+	return result, nil
 }

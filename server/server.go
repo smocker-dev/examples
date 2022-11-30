@@ -22,8 +22,9 @@ func Serve(config types.Config) {
 
 	engine := echo.New()
 	engine.Use(middleware.Recover(), middleware.LoggerWithConfig(middleware.LoggerConfig{
-		Format: "method=${method}, uri=${uri}, status=${status}\n",
+		Format: "HTTP Request time=${time_rfc3339}, method=${method}, uri=${uri}, status=${status}\n",
 	}))
+
 	reservations := engine.Group("/reservations")
 	{
 		ctrl := ctrls.Reservations

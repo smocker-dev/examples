@@ -32,6 +32,9 @@ func (c *hotelsClient) GetHotels(ctx context.Context) ([]types.Hotel, error) {
 		return hotels, err
 	}
 	defer resp.Body.Close()
+	if err = errorHook(resp); err != nil {
+		return hotels, err
+	}
 	err = json.NewDecoder(resp.Body).Decode(&hotels)
 	return hotels, err
 }
@@ -47,6 +50,9 @@ func (c *hotelsClient) GetHotelByName(ctx context.Context, name string) (types.H
 		return hotel, err
 	}
 	defer resp.Body.Close()
+	if err = errorHook(resp); err != nil {
+		return hotel, err
+	}
 	err = json.NewDecoder(resp.Body).Decode(&hotel)
 	return hotel, err
 }

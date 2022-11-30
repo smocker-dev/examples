@@ -10,3 +10,7 @@
   user_id: 1
   hotel_id: 3
   room_number: 2
+- id: 4
+  user_id: 1
+  hotel_id: 1
+  room_number: 2

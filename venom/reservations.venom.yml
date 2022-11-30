@@ -11,7 +11,7 @@ testcases:
         assertions:
           - result.err ShouldBeEmpty
 
-  - name: Retrieve reservations
+  - name: Retrieve existings reservations
     steps:
       - type: http
         method: GET
@@ -21,7 +21,7 @@ testcases:
           - result.bodyjson.__type__ ShouldEqual Array
           - result.bodyjson.__len__ ShouldEqual 3
 
-  - name: Retrieve one existing reservation
+  - name: Retrieve an existing reservation
     steps:
       - type: http
         method: GET
@@ -33,23 +33,95 @@ testcases:
           - result.bodyjson.hotel_id ShouldEqual 2
           - result.bodyjson.room_number ShouldEqual 3
 
-  - name: Try to retrieve unexisting reservation
+  - name: Try to retrieve an unexisting reservation
     steps:
       - type: http
         method: GET
-        url: "{{.myapp}}/reservations/4"
+        url: "{{.myapp}}/reservations/5"
         assertions:
           - result.statuscode ShouldEqual 404
-          - "result.bodyjson.message ShouldEqual unable to retrieve reservation for id '4': not found"
+          - "result.bodyjson.message ShouldEqual unable to retrieve reservation for id '5': not found"
 
-  - name: Get one reservation
+  - name: Create a reservation with missing data
     steps:
       - type: http
-        method: GET
-        url: "{{.myapp}}/reservations/1"
+        method: POST
+        url: "{{.mock_server}}/mocks?session=create_reservation_missing_data"
+        bodyFile: ./assets/mocks/create_reservation_not_found.mocks.yml
         assertions:
           - result.statuscode ShouldEqual 200
-          - result.bodyjson.id ShouldEqual 1
-          - result.bodyjson.user_id ShouldEqual 2
-          - result.bodyjson.hotel_id ShouldEqual 2
-          - result.bodyjson.room_number ShouldEqual 3
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel1",
+            "user":  "user1",
+            "rooms": 2
+          }
+        assertions:
+          - result.statuscode ShouldEqual 500
+          - 'result.bodyjson.message ShouldEqual unable to retrieve user "user1": request failed with code 404: not found'
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel2",
+            "user":  "user2",
+            "rooms": 2
+          }
+        assertions:
+          - result.statuscode ShouldEqual 500
+          - 'result.bodyjson.message ShouldEqual unable to retrieve hotel "hotel2": request failed with code 404: not found'
+
+  - name: Create a reservation not enough rooms
+    steps:
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/mocks?session=create_reservation_not_enough_rooms"
+        bodyFile: ./assets/mocks/create_reservation_ok.mocks.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel1",
+            "user":  "user1",
+            "rooms": 20
+          }
+        assertions:
+          - result.statuscode ShouldEqual 409
+          - "result.bodyjson.message ShouldEqual can't create reservation: not enough room available"
+
+  - name: Create a reservation ok
+    steps:
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/mocks?session=create_reservation_ok"
+        bodyFile: ./assets/mocks/create_reservation_ok.mocks.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel1",
+            "user":  "user1",
+            "rooms": 2
+          }
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.id ShouldNotBeEmpty
+

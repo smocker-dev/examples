@@ -19,7 +19,7 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.__type__ ShouldEqual Array
-          - result.bodyjson.__len__ ShouldEqual 3
+          - result.bodyjson.__len__ ShouldEqual 4
 
   - name: Retrieve an existing reservation
     steps:
@@ -78,6 +78,13 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 500
           - 'result.bodyjson.message ShouldEqual unable to retrieve hotel "hotel2": request failed with code 404: not found'
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/sessions/verify"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.history.verified ShouldBeTrue
 
   - name: Create a reservation not enough rooms
     steps:
@@ -101,6 +108,13 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 409
           - "result.bodyjson.message ShouldEqual can't create reservation: not enough room available"
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/sessions/verify"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.history.verified ShouldBeTrue
 
   - name: Create a reservation ok
     steps:
@@ -124,4 +138,22 @@ testcases:
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.id ShouldNotBeEmpty
+        vars:
+          reservationID:
+            from: result.bodyjson.id
+      - type: sql
+        driver: postgres
+        dsn: "{{.pgsql_dsn}}"
+        commands:
+          - "SELECT * FROM reservations;"
+        assertions:
+          - result.queries.queries0.rows.__len__ ShouldEqual 5
+          - result.queries.queries0.rows.rows4.id ShouldEqual {{.reservationID}}
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/sessions/verify"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.history.verified ShouldBeTrue
 

@@ -24,6 +24,7 @@ build:
 
 .PHONY: run
 run: $(REFLEX)
+	. .env; \
 	$(REFLEX) --start-service \
 		--decoration='none' \
 		--regex='.*\.go$$' \
@@ -32,7 +33,7 @@ run: $(REFLEX)
 .PHONY: test
 test:
 	go test ./... -coverpkg=./... -coverprofile ./dist/example.cover.out
-	go tool cover -html=example.cover.out -o ./dist/example.cover.html
+	go tool cover -html=./dist/example.cover.out -o ./dist/example.cover.html
 
 .PHONY: test-integration
 test-integration: $(VENOM)

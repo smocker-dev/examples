@@ -10,6 +10,11 @@ testcases:
         folder: ./assets/fixtures
         assertions:
           - result.err ShouldBeEmpty
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/reset"
+        assertions:
+          - result.statuscode ShouldEqual 200
 
   - name: Retrieve existings reservations
     steps:

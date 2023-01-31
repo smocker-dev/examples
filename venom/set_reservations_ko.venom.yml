@@ -1,0 +1,133 @@
+version: "2"
+name: TestSuite on the creation of invalid reservations
+testcases:
+  - name: Init Environment
+    steps:
+      - type: dbfixtures
+        database: postgres
+        dsn: "{{.pgsql_dsn}}"
+        migrations: ./assets/schemas
+        folder: ./assets/fixtures
+        assertions:
+          - result.err ShouldBeEmpty
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/reset"
+        assertions:
+          - result.statuscode ShouldEqual 200
+
+  - name: Create a reservation with missing data
+    steps:
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/mocks?session=create_reservation_missing_data"
+        bodyFile: ./assets/mocks/create_reservation_not_found.mocks.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel1",
+            "user":  "user1",
+            "rooms": 2
+          }
+        assertions:
+          - result.statuscode ShouldEqual 500
+          - 'result.bodyjson.message ShouldEqual unable to retrieve user "user1": request failed with code 404: not found'
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel2",
+            "user":  "user2",
+            "rooms": 2
+          }
+        assertions:
+          - result.statuscode ShouldEqual 500
+          - 'result.bodyjson.message ShouldEqual unable to retrieve hotel "hotel2": request failed with code 404: not found'
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/sessions/verify"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.history.verified ShouldBeTrue
+
+  - name: Create a reservation not enough rooms
+    steps:
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/mocks?session=create_reservation_not_enough_rooms"
+        bodyFile: ./assets/mocks/create_reservation_ok.mocks.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel1",
+            "user":  "user1",
+            "rooms": 20
+          }
+        assertions:
+          - result.statuscode ShouldEqual 409
+          - "result.bodyjson.message ShouldEqual can't create reservation: not enough room available"
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/sessions/verify"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.history.verified ShouldBeTrue
+
+  - name: Create a reservation ok
+    steps:
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/mocks?session=create_reservation_ok"
+        bodyFile: ./assets/mocks/create_reservation_ok.mocks.yml
+        assertions:
+          - result.statuscode ShouldEqual 200
+      - type: http
+        method: POST
+        url: "{{.myapp}}/reservations"
+        headers:
+          Content-Type: application/json
+        body: |
+          {
+            "hotel": "hotel1",
+            "user":  "user1",
+            "rooms": 2
+          }
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.id ShouldNotBeEmpty
+        vars:
+          reservationID:
+            from: result.bodyjson.id
+      - type: sql
+        driver: postgres
+        dsn: "{{.pgsql_dsn}}"
+        commands:
+          - "SELECT * FROM reservations;"
+        assertions:
+          - result.queries.queries0.rows.__len__ ShouldEqual 5
+          - result.queries.queries0.rows.rows4.id ShouldEqual {{.reservationID}}
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/sessions/verify"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.mocks.all_used ShouldBeTrue
+          - result.bodyjson.history.verified ShouldBeTrue
+

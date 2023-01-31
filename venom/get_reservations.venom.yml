@@ -1,0 +1,48 @@
+version: "2"
+name: TestSuite on the retrieval of reservations
+testcases:
+  - name: Init Environment
+    steps:
+      - type: dbfixtures
+        database: postgres
+        dsn: "{{.pgsql_dsn}}"
+        migrations: ./assets/schemas
+        folder: ./assets/fixtures
+        assertions:
+          - result.err ShouldBeEmpty
+      - type: http
+        method: POST
+        url: "{{.mock_server}}/reset"
+        assertions:
+          - result.statuscode ShouldEqual 200
+
+  - name: Retrieve existings reservations
+    steps:
+      - type: http
+        method: GET
+        url: "{{.myapp}}/reservations"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.__type__ ShouldEqual Array
+          - result.bodyjson.__len__ ShouldEqual 4
+
+  - name: Retrieve an existing reservation
+    steps:
+      - type: http
+        method: GET
+        url: "{{.myapp}}/reservations/1"
+        assertions:
+          - result.statuscode ShouldEqual 200
+          - result.bodyjson.id ShouldEqual 1
+          - result.bodyjson.user_id ShouldEqual 2
+          - result.bodyjson.hotel_id ShouldEqual 2
+          - result.bodyjson.room_number ShouldEqual 3
+
+  - name: Try to retrieve an unexisting reservation
+    steps:
+      - type: http
+        method: GET
+        url: "{{.myapp}}/reservations/5"
+        assertions:
+          - result.statuscode ShouldEqual 404
+          - "result.bodyjson.message ShouldEqual unable to retrieve reservation for id '5': not found"

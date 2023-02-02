@@ -55,3 +55,11 @@ integration: build $(VENOM)
 generate: $(MOCKERY)
 	rm -rfv ./sdks/mocks/*.go; $(MOCKERY) --note '+build !codeanalysis' --all --dir "./sdks" --output "./sdks/mocks"
 	rm -rfv ./server/database/mocks/*.go; $(MOCKERY) --note '+build !codeanalysis' --all --dir "./server/database" --output "./server/database/mocks"
+
+.PHONY: open-tests
+open-tests:
+	open ./dist/example.cover.html
+
+.PHONY: open-integration
+open-integration:
+	open ./dist/example.venom.cover.html

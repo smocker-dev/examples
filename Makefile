@@ -42,19 +42,27 @@ test-integration: $(VENOM)
 
 .PHONY: integration
 PID_FILE:=/tmp/example.test.pid
+RES_FILE:=/tmp/example.test.status
 integration: build $(VENOM)
-	. .env; \
-	./dist/example.test -test.coverprofile=./dist/example.venom.cover.out > ./dist/example.app.log 2>&1 & echo $$! > $(PID_FILE); \
-	sleep 5; \
-	$(VENOM) run venom/**/*.venom.yml --var="myapp=$${MY_APP}" --var="mock_server=$${MOCK_SERVER_ADMIN}" --var="pgsql_dsn=$${POSTGRES_DSN}" --format=xml --output-dir=./dist | tee ./dist/example.venom.log 2>&1 || res=$$?; \
-	kill `cat $(PID_FILE)` 2> /dev/null || true; \
-	go tool cover -html=./dist/example.venom.cover.out -o ./dist/example.venom.cover.html; \
-	exit $$res
+	. .env; ./dist/example.test -test.coverprofile=./dist/example.venom.cover.out > ./dist/example.app.log 2>&1 & echo $$! > $(PID_FILE);
+	sleep 5;
+	. .env; ($(VENOM) run venom/**/*.venom.yml --var="myapp=$${MY_APP}" --var="mock_server=$${MOCK_SERVER_ADMIN}" --var="pgsql_dsn=$${POSTGRES_DSN}" --format=xml --output-dir=./dist; echo $$? > $(RES_FILE)) | tee ./dist/example.venom.log
+	kill `cat $(PID_FILE)` 2> /dev/null || true
+	go tool cover -html=./dist/example.venom.cover.out -o ./dist/example.venom.cover.html;
+	exit `cat $(RES_FILE)`
 
 .PHONY: generate
 generate: $(MOCKERY)
 	rm -rfv ./sdks/mocks/*.go; $(MOCKERY) --note '+build !codeanalysis' --all --dir "./sdks" --output "./sdks/mocks"
 	rm -rfv ./server/database/mocks/*.go; $(MOCKERY) --note '+build !codeanalysis' --all --dir "./server/database" --output "./server/database/mocks"
+
+.PHONY: dependencies
+dependencies:
+	docker compose up -d
+
+.PHONY: stop-dependencies
+stop-dependencies:
+	docker compose down --remove-orphans
 
 .PHONY: open-tests
 open-tests:
@@ -63,3 +71,7 @@ open-tests:
 .PHONY: open-integration
 open-integration:
 	open ./dist/example.venom.cover.html
+
+.PHONY: open-smocker
+open-smocker:
+	open http://localhost:8001

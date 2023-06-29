@@ -40,6 +40,11 @@ test-integration: $(VENOM)
 	. .env; \
 	$(VENOM) run venom/**/*.venom.yml --var="myapp=$${MY_APP}" --var="mock_server=$${MOCK_SERVER_ADMIN}" --var="pgsql_dsn=$${POSTGRES_DSN}"  --format=xml --output-dir=./dist
 
+.PHONY: manual-integration
+manual-integration: $(VENOM)
+	. .env; \
+	$(VENOM) run venom/**/manual.yml --var="myapp=$${MY_APP}" --var="mock_server=$${MOCK_SERVER_ADMIN}" --var="pgsql_dsn=$${POSTGRES_DSN}"  --format=xml --output-dir=./dist
+
 .PHONY: integration
 PID_FILE:=/tmp/example.test.pid
 RES_FILE:=/tmp/example.test.status

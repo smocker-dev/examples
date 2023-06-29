@@ -12,8 +12,7 @@ testcases:
           - result.err ShouldBeEmpty
       - type: http
         method: POST
-        url: "{{.mock_server}}/mocks?session=create_reservation_ok"
-        bodyFile: ./assets/mocks/create_reservation_ok.mocks.yml
+        url: "{{.mock_server}}/reset"
         assertions:
           - result.statuscode ShouldEqual 200
 
@@ -51,4 +50,3 @@ testcases:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.mocks.all_used ShouldBeTrue
           - result.bodyjson.history.verified ShouldBeTrue
-

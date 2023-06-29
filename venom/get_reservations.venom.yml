@@ -12,7 +12,7 @@ testcases:
           - result.err ShouldBeEmpty
       - type: http
         method: POST
-        url: "{{.mock_server}}/reset"
+        url: "{{.mock_server}}/sessions?name=get_reservations"
         assertions:
           - result.statuscode ShouldEqual 200
 

@@ -80,3 +80,7 @@ open-integration:
 .PHONY: open-smocker
 open-smocker:
 	open http://localhost:8001
+
+.PHONY: open-venom
+open-venom:
+	open https://github.com/ovh/venom#executors

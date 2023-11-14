@@ -18,17 +18,26 @@ $(VENOM):
 	curl -sSfLo $(VENOM) https://github.com/ovh/venom/releases/download/$(venom_version)/venom.darwin-amd64
 	chmod +x $(VENOM)
 
+.PHONY: clean
+clean:
+	rm -f ./dist/*.html ./dist/*.out ./dist/*.xml ./dist/*.log ./dist/*.test
+
 .PHONY: build
 build:
 	go test -tags=integration -race -coverpkg="./..." -c . -o ./dist/example.test
 
-.PHONY: run
-run: $(REFLEX)
+.PHONY: start
+start: $(REFLEX)
 	. .env; \
 	$(REFLEX) --start-service \
 		--decoration='none' \
 		--regex='.*\.go$$' \
 		-- go run .
+
+.PHONY: start-integration
+start-integration: build
+	. .env; \
+	./dist/example.test -test.coverprofile=./dist/example.venom.cover.out
 
 .PHONY: test
 test:

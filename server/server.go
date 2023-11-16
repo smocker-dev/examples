@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,6 +21,7 @@ func Serve(config types.Config) {
 	ctrls := handlers.Setup(services.Setup(config))
 
 	engine := echo.New()
+	engine.HideBanner = true
 	engine.Use(middleware.Recover(), middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format: "HTTP Request time=${time_rfc3339}, method=${method}, uri=${uri}, status=${status}\n",
 	}))
@@ -35,7 +36,7 @@ func Serve(config types.Config) {
 
 	go func() {
 		if err := engine.Start(fmt.Sprintf(":%d", config.Port)); err != nil {
-			log.Printf("Shutting down the server: %v\n", err)
+			slog.Info(fmt.Sprintf("Shutting down the server: %v\n", err))
 		}
 	}()
 
@@ -45,13 +46,13 @@ func Serve(config types.Config) {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Shutting down the server gracefully")
+	slog.Info("Shutting down the server gracefully")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := engine.Shutdown(ctx); err != nil {
-		log.Printf("Unable to shutdown server gracefully: %v\n", err)
+		slog.Error(fmt.Sprintf("Unable to shutdown server gracefully: %v\n", err))
 		return
 	}
-	log.Println("Server has shut down gracefully")
+	slog.Info("Server has shut down gracefully")
 }

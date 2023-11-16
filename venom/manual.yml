@@ -12,7 +12,8 @@ testcases:
           - result.err ShouldBeEmpty
       - type: http
         method: POST
-        url: "{{.mock_server}}/reset"
+        url: "{{.mock_server}}/mocks?reset=true"
+        bodyFile: ./assets/mocks/manual.mocks.yml
         assertions:
           - result.statuscode ShouldEqual 200
 
@@ -29,6 +30,7 @@ testcases:
             "user":  "user1",
             "rooms": 2
           }
+        info: "{{.result.bodyjson}}"
         assertions:
           - result.statuscode ShouldEqual 200
           - result.bodyjson.id ShouldNotBeEmpty

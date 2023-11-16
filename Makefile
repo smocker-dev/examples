@@ -35,9 +35,12 @@ start: $(REFLEX)
 		-- go run .
 
 .PHONY: start-integration
-start-integration: build
+start-integration:
 	. .env; \
-	./dist/example.test -test.coverprofile=./dist/example.venom.cover.out
+	$(REFLEX) --start-service \
+		--decoration='none' \
+		--regex='.*\.go$$' \
+		-- sh -c 'make build && ./dist/example.test -test.coverprofile=./dist/example.venom.cover.out'
 
 .PHONY: test
 test:

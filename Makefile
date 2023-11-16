@@ -40,7 +40,7 @@ start-integration:
 	$(REFLEX) --start-service \
 		--decoration='none' \
 		--regex='.*\.go$$' \
-		-- sh -c 'make build && ./dist/example.test -test.coverprofile=./dist/example.venom.cover.out'
+		-- sh -c 'make build; ./dist/example.test -test.coverprofile=./dist/example.venom.cover.out'
 
 .PHONY: test
 test:
@@ -72,6 +72,10 @@ integration: build $(VENOM)
 generate: $(MOCKERY)
 	rm -rfv ./sdks/mocks/*.go; $(MOCKERY) --note '+build !codeanalysis' --all --dir "./sdks" --output "./sdks/mocks"
 	rm -rfv ./server/database/mocks/*.go; $(MOCKERY) --note '+build !codeanalysis' --all --dir "./server/database" --output "./server/database/mocks"
+
+.PHONY: cover
+cover:
+	go tool cover -html=./dist/example.venom.cover.out -o ./dist/example.venom.cover.html
 
 .PHONY: dependencies
 dependencies:
